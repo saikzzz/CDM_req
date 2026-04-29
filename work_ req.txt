@@ -1,0 +1,47 @@
+Workday -6
+Workday 7
+
+drill_date should be updated in every end of month 20th (which is Workday -6)  and till the 12th of next month (which is Workday 7)
+ex: Apr 20th to till 12th of May the drill date should fall in drill_date = '2026-04-01'
+
+it means on every month 20th date the drill date should get updated to 1st of the month which means in case of April it should 
+be drill_date = '2026-04-01' and the drill date should be constant till the next month 12th date which is till May 12th the drill_date 
+should be constant to drill_date = '2026-04-01' and soo on for every month this pattern should be repeated
+
+Here keep the day as constant to 01 
+
+Month should be constant in that specific month( in 04 month it should be 04) 
+and for the next month in may it should happen month -1(till 12th date of the month)
+and when it comes to 20th of that month it should be month specific It means on the May 20th the drill_date should be 
+updated to drill_date = '2026-05-01'
+
+Year should be constant for that specific year and in the month of January it should happen year -1 and month -1 for the January 
+Workday 7 activity 
+
+
+Code logic:
+
+from datetime import date
+
+def calculate_drill_date(today: date) -> str:
+    """
+    Returns drill_date as YYYY-MM-01 based on business rules
+    """
+    year = today.year
+    month = today.month
+    day = today.day
+
+    # If today is on or after 20th → current month
+    if day >= 20:
+        drill_year = year
+        drill_month = month
+    else:
+        # Before 20th → previous month
+        if month == 1:
+            drill_year = year - 1
+            drill_month = 12
+        else:
+            drill_year = year
+            drill_month = month - 1
+
+    return f"{drill_year}-{drill_month:02d}-01"
