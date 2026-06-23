@@ -226,6 +226,7 @@ def dataload1():
 
 def dataload2():
     df3.columns = df3.columns.str.lower()
+    df3.columns=['gl_acct', 'lgr', 'fisc_yr', 'mo', 'ucmg_id', 'amt', 'line_desc', 'descr', 'opr_id', 'src', 'jnl_id', 'insrt_on','BU','OU','LOC','DEPT','BUS_FLG','posted_date']
     df3.fillna("", inplace=True)
     df3.to_csv(filename2, index=None, quoting=csv.QUOTE_ALL, quotechar='"', doublequote=True)
 
