@@ -56,7 +56,7 @@ def calculate_drill_date(today=None):
     return f"{drill_year}-{drill_month:02d}-01"
 
 
-# ✅ Generate drill_date once
+# Generate drill_date once
 drill_date = calculate_drill_date()
 print("Calculated Drill Date:", drill_date)
 
@@ -142,9 +142,64 @@ def extract():
     df2 = session.sql(query2).to_pandas()
 
     query3 = f"""
-    SELECT *
-    FROM bpmda.vw_fdw_actuals_flipped
-    WHERE DRILL_DATE = '{drill_date}'
+    SELECT concat('A',trim(ACCOUNT)) gl_acct,trim(LEDGER) lgr,
+concat('FY', year(DRILL_DATE)) fisc_yr,
+substr('JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC', MONTH(drill_date)*3-2, 3) mo,
+concat('J',PROJECT_ID) ucmg_id,
+cast(sum(AMOUNT) as DECIMAL(19,4)) amt,
+trim(line_descr) line_desc,
+trim(descr) descr,
+trim(oprid) opr_id,
+trim(source) src,
+trim(journal_id) jnl_id,
+TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH:MI:SS.FF3') insrt_on,
+trim(BUSINESS_UNIT) BU,
+trim(OPERATING_UNIT) OU,
+trim(LOCATION) LOC,
+trim(DEPTID) DEPT,
+'UHG' BUS_FLG,
+posted_date
+FROM bpmda.vw_fdw_actuals_flipped D
+WHERE DRILL_DATE = '{drill_date}'
+AND LEDGER='GAAP'
+AND BUSINESS_UNIT='20020'
+AND OPERATING_UNIT='01000'
+AND (account between '40000' AND '99999' OR account in ('15050','15060','15055' ,'15065'))
+AND concat('D',DEPTID) in (select leaf from tleaves where treecd = 'DEPT' and node = 'ES100')
+AND CONCAT('J',PROJECT_ID) IN (SELECT LEAF FROM TLEAVES where treecd = 'PROJ' and node = 'CRAG_CAPITAL_PROJ')
+GROUP BY ACCOUNT, LEDGER, DRILL_DATE, PROJECT_ID, line_descr, descr, descr254, oprid,journal_id, source,BUSINESS_UNIT,OPERATING_UNIT,LOCATION,
+DEPTID,BUS_FLG,posted_date
+HAVING cast(sum(AMOUNT) AS DECIMAL(19,4)) != 0
+
+union all
+
+SELECT concat('A',trim(ACCOUNT)) gl_acct,trim(LEDGER) lgr,
+concat('FY', year(DRILL_DATE)) fisc_yr,
+substr('JANFEBMARAPRMAYJUNJULAUGSEPOCTNOVDEC', MONTH(drill_date)*3-2, 3) mo,
+concat('J',PROJECT_ID) ucmg_id,
+cast(sum(AMOUNT) as DECIMAL(19,4)) amt,
+trim(line_descr) line_desc,
+trim(descr) descr,
+trim(oprid) opr_id,
+trim(source) src,
+trim(journal_id) jnl_id,
+TO_CHAR(CURRENT_TIMESTAMP, 'YYYY-MM-DD HH:MI:SS.FF3') insrt_on,
+trim(BUSINESS_UNIT) BU,
+trim(OPERATING_UNIT) OU,
+trim(LOCATION) LOC,
+trim(DEPTID) DEPT,
+'UHC' BUS_FLG,
+posted_date
+FROM bpmda.vw_fdw_actuals_flipped D
+WHERE DRILL_DATE = '{drill_date}'
+AND BUSINESS_UNIT='20020'
+AND OPERATING_UNIT='02858'
+AND DEPTID='220210'
+AND LEDGER='GAAP'
+AND ACCOUNT between '40000' AND '99999'
+GROUP BY ACCOUNT, LEDGER, DRILL_DATE, PROJECT_ID, line_descr, descr, descr254, oprid, journal_id,source,BUSINESS_UNIT,OPERATING_UNIT,LOCATION,
+DEPTID,BUS_FLG,posted_date
+HAVING cast(sum(AMOUNT) AS DECIMAL(19,4)) != 0
     """
 
     df3 = session.sql(query3).to_pandas()
